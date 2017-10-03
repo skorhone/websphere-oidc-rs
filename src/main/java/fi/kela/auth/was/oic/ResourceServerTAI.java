@@ -1,6 +1,5 @@
 package fi.kela.auth.was.oic;
 
-import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Properties;
@@ -22,18 +21,11 @@ import com.ibm.wsspi.security.token.AttributeNameConstants;
 public class ResourceServerTAI implements TrustAssociationInterceptor {
 	private static final String TOKEN_PREFIX = "Bearer ";
 	private static final String AUTH_HEADER = "Authorization";
-	private String key;
-	private String issuer;
-	private String realm;
-	private String groupClaim;
+	private Configuration configuration;
 
 	@Override
 	public int initialize(Properties properties) throws WebTrustAssociationFailedException {
-		// TODO: Config
-		this.key = "secret";
-		this.issuer = "https://kela.fi";
-		this.realm = "kela";
-		this.groupClaim = "groupIds";
+		configuration = new Configuration(properties);
 		return 0;
 	}
 
@@ -78,8 +70,8 @@ public class ResourceServerTAI implements TrustAssociationInterceptor {
 
 	private DecodedJWT validateToken(String token) throws WebTrustAssociationFailedException {
 		try {
-			Algorithm algorithm = Algorithm.HMAC256(key);
-			JWTVerifier verifier = JWT.require(algorithm).withIssuer(issuer).build();
+			Algorithm algorithm = Algorithm.HMAC256(configuration.getSecretKey());
+			JWTVerifier verifier = JWT.require(algorithm).withIssuer(configuration.getAcceptedIssuer()).build();
 			return verifier.verify(token);
 		} catch (Exception exception) {
 			throw new WebTrustAssociationFailedException(exception.getMessage());
@@ -90,8 +82,9 @@ public class ResourceServerTAI implements TrustAssociationInterceptor {
 		List<String> groups = getGroups(token);
 
 		Hashtable<String, Object> properties = new Hashtable<String, Object>();
-		properties.put(AttributeNameConstants.WSCREDENTIAL_UNIQUEID, addRealm(token.getSubject()));
-		properties.put(AttributeNameConstants.WSCREDENTIAL_SECURITYNAME, addRealm(token.getSubject()));
+		properties.put(AttributeNameConstants.WSCREDENTIAL_REALM, configuration.getRealm());
+		properties.put(AttributeNameConstants.WSCREDENTIAL_UNIQUEID, token.getSubject());
+		properties.put(AttributeNameConstants.WSCREDENTIAL_SECURITYNAME, token.getSubject());
 		properties.put(AttributeNameConstants.WSCREDENTIAL_GROUPS, groups);
 
 		Subject subject = new Subject();
@@ -101,14 +94,6 @@ public class ResourceServerTAI implements TrustAssociationInterceptor {
 	}
 
 	private List<String> getGroups(DecodedJWT token) {
-		List<String> groups = new ArrayList<String>();
-		for (String group : token.getClaim(groupClaim).asList(String.class)) {
-			groups.add(addRealm(group));
-		}
-		return groups;
-	}
-
-	private String addRealm(String id) {
-		return realm + "/" + id;
+		return token.getClaim(configuration.getGroupClaim()).asList(String.class);
 	}
 }
