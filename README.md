@@ -1,8 +1,8 @@
 # websphere-oic-rc
-This library provides Trust Association Interceptor (TAI) based implementation of OpenID Connect Resource Server (RS) provider for WebSphere Application Server (Classic and Liberty)
+This library provides OpenID Connect Resource Server (RS) support for WebSphere Application Server (Classic and Liberty) using Trust Association Interceptor (TAI).
 
 ## Notes
-Implementation currently supports only HMAC256 (shared secret) based signature verification. 
+Implementation currently supports only fixed keys.
 
 ## ResourceServerTAI (liberty)
 Configuration is simple and straightforward. Just add following fragment to your server.xml:
