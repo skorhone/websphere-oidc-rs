@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.ibm.websphere.security.WebTrustAssociationException;
 import com.ibm.websphere.security.WebTrustAssociationFailedException;
@@ -33,7 +34,7 @@ public class ResourceServerTAI implements TrustAssociationInterceptor {
 
 	@Override
 	public int initialize(Properties properties) throws WebTrustAssociationFailedException {
-		configuration = new Configuration(properties);
+		configuration = Configuration.from(properties);
 		return 0;
 	}
 
@@ -67,23 +68,28 @@ public class ResourceServerTAI implements TrustAssociationInterceptor {
 	@Override
 	public TAIResult negotiateValidateandEstablishTrust(HttpServletRequest req, HttpServletResponse res)
 			throws WebTrustAssociationFailedException {
+		Subject subject;
+		try {
+			subject = authenticate(req, res);
+		} catch (Exception exception) {
+			throw new WebTrustAssociationFailedException(exception.getMessage());
+		}
+		return TAIResult.create(HttpServletResponse.SC_OK, "ignored", subject);
+	}
+
+	protected Subject authenticate(HttpServletRequest req, HttpServletResponse res)
+			throws WebTrustAssociationFailedException {
 		String auth = req.getHeader(AUTH_HEADER);
 		String token = auth.substring(TOKEN_PREFIX.length());
 
 		DecodedJWT jwt = validateToken(token);
-		Subject subject = createSubject(jwt);
-
-		return TAIResult.create(HttpServletResponse.SC_OK, "ignored", subject);
+		return createSubject(jwt);
 	}
 
-	private DecodedJWT validateToken(String token) throws WebTrustAssociationFailedException {
-		try {
-			Algorithm algorithm = getSignatureAlgorithm();
-			JWTVerifier verifier = JWT.require(algorithm).withIssuer(configuration.getAcceptedIssuer()).build();
-			return verifier.verify(token);
-		} catch (Exception exception) {
-			throw new WebTrustAssociationFailedException(exception.getMessage());
-		}
+	private DecodedJWT validateToken(String token) throws JWTVerificationException {
+		Algorithm algorithm = getSignatureAlgorithm();
+		JWTVerifier verifier = JWT.require(algorithm).withIssuer(configuration.getAcceptedIssuer()).build();
+		return verifier.verify(token);
 	}
 
 	private Algorithm getSignatureAlgorithm() {

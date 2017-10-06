@@ -9,7 +9,17 @@ import java.util.Properties;
  *
  */
 public class Configuration {
-	public enum SA { RS256, HS256 } 
+	public static final String SIGNATURE_ALGORITHM = "signatureAlgorithm";
+	public static final String PUBLIC_KEY = "publicKey";
+	public static final String SECRET_KEY = "secretKey";
+	public static final String REALM = "realm";
+	public static final String ACCEPTED_ISSUER = "acceptedIssuer";
+	public static final String GROUP_CLAIM = "groupClaim";
+
+	public enum SA {
+		RS256, HS256
+	}
+
 	private SA signatureAlgorithm;
 	private String publicKey;
 	private String secretKey;
@@ -17,19 +27,24 @@ public class Configuration {
 	private String realm;
 	private String groupClaim;
 
-	public Configuration(Properties properties) {
-		this.signatureAlgorithm = SA.valueOf(getProperty(properties, "signatureAlgorithm"));
-		if (signatureAlgorithm == SA.RS256) {
-			this.publicKey = getProperty(properties, "publicKey");
-		} else {
-			this.secretKey = getProperty(properties, "secretKey");
-		}
-		this.acceptedIssuer = getProperty(properties, "acceptedIssuer");
-		this.realm = getProperty(properties, "realm");
-		this.groupClaim = getProperty(properties, "groupClaim");
+	private Configuration() {
 	}
 
-	private String getProperty(Properties properties, String propertyName) {
+	public static Configuration from(Properties properties) {
+		Configuration configuration = new Configuration();
+		configuration.signatureAlgorithm = SA.valueOf(getProperty(properties, SIGNATURE_ALGORITHM));
+		if (configuration.signatureAlgorithm == SA.RS256) {
+			configuration.publicKey = getProperty(properties, PUBLIC_KEY);
+		} else {
+			configuration.secretKey = getProperty(properties, SECRET_KEY);
+		}
+		configuration.acceptedIssuer = getProperty(properties, ACCEPTED_ISSUER);
+		configuration.realm = getProperty(properties, REALM);
+		configuration.groupClaim = getProperty(properties, GROUP_CLAIM);
+		return configuration;
+	}
+
+	private static String getProperty(Properties properties, String propertyName) {
 		String value = properties.getProperty(propertyName);
 		if (value == null) {
 			throw new IllegalArgumentException("Required property " + propertyName + " was not set!");
@@ -44,7 +59,7 @@ public class Configuration {
 	public String getSecretKey() {
 		return secretKey;
 	}
-	
+
 	public String getPublicKey() {
 		return publicKey;
 	}
