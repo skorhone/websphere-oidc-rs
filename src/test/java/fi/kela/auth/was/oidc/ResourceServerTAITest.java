@@ -1,4 +1,4 @@
-package fi.kela.auth.was.oic;
+package fi.kela.auth.was.oidc;
 
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
@@ -24,6 +24,9 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.InvalidClaimException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.ibm.wsspi.security.token.AttributeNameConstants;
+
+import fi.kela.auth.was.oidc.Configuration;
+import fi.kela.auth.was.oidc.ResourceServerTAI;
 
 public class ResourceServerTAITest extends EasyMockSupport {
 	private static final String SUBJECT = "TestUser";

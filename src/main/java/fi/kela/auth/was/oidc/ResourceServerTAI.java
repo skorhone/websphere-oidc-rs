@@ -1,4 +1,4 @@
-package fi.kela.auth.was.oic;
+package fi.kela.auth.was.oidc;
 
 import java.io.UnsupportedEncodingException;
 import java.security.KeyFactory;
@@ -25,7 +25,7 @@ import com.ibm.wsspi.security.tai.TAIResult;
 import com.ibm.wsspi.security.tai.TrustAssociationInterceptor;
 import com.ibm.wsspi.security.token.AttributeNameConstants;
 
-import fi.kela.auth.was.oic.Configuration.SA;
+import fi.kela.auth.was.oidc.Configuration.SA;
 
 public class ResourceServerTAI implements TrustAssociationInterceptor {
 	private static final String TOKEN_PREFIX = "Bearer ";

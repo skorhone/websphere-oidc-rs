@@ -1,4 +1,4 @@
-package fi.kela.auth.was.oic;
+package fi.kela.auth.was.oidc;
 
 import java.util.Properties;
 
